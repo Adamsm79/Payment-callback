@@ -8,3 +8,6 @@
   from = "/payment/callback"
   to = "/.netlify/functions/callback"
   status = 200
+
+  [build.environment]
+  PAYSTACK_SECRET_KEY = "sk_live_3481588a33155f1476ac60410f3478d0d8253d3f"
