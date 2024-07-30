@@ -1,6 +1,9 @@
 [build]
-  functions = "netlify/functions"
+  base = "."
   publish = "public"
-
-[dev]
   functions = "netlify/functions"
+  command = "npm install && npm run build"
+
+[context.production.environment]
+  PAYSTACK_SECRET_KEY = "sk_live_3481588a33155f1476ac60410f3478d0d8253d3f"
+   
