@@ -1,66 +1,56 @@
 const axios = require('axios');
 
-// Handler function for Netlify
-exports.handler = async function(event) {
+exports.handler = async (event) => {
   if (event.httpMethod === 'POST') {
-    const { body } = event;
-    const parsedBody = JSON.parse(body);
-    const { reference } = parsedBody;
-
-    // Check if the reference is provided
-    if (!reference) {
-      return {
-        statusCode: 400,
-        body: 'Transaction reference is missing',
-      };
-    }
-
     try {
-      // Replace with your Paystack secret key
-      const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+      const { reference } = JSON.parse(event.body);
+      
+      if (!reference) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ message: 'Transaction reference is missing' }),
+        };
+      }
 
-      // Verify the transaction with Paystack
+      const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+      
       const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
         headers: {
           Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
         },
       });
 
-      const { status, data } = response.data;
+      const { data } = response;
 
-      if (status) {
-        if (data.status === 'success') {
-          console.log(`Transaction successful: ${reference}`);
-          // Handle successful transaction here
-          return {
-            statusCode: 200,
-            body: 'Transaction successful',
-          };
-        } else {
-          console.log(`Transaction failed: ${reference}`);
-          // Handle failed transaction here
-          return {
-            statusCode: 200,
-            body: 'Transaction failed',
-          };
-        }
+      if (data.status === 'success') {
+        console.log(`Transaction successful: ${reference}`);
+        // Update your database or notify your main application here
+
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ message: 'Transaction successful' }),
+        };
+      } else {
+        console.log(`Transaction failed: ${reference}`);
+        // Handle failed transaction here
+
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ message: 'Transaction failed' }),
+        };
       }
-
-      return {
-        statusCode: 200,
-        body: 'Callback received',
-      };
     } catch (error) {
       console.error('Error verifying transaction:', error);
+
       return {
         statusCode: 500,
-        body: 'Internal Server Error',
+        body: JSON.stringify({ message: 'Internal Server Error' }),
       };
     }
   } else {
     return {
       statusCode: 405,
-      body: 'Method Not Allowed',
+      body: JSON.stringify({ message: 'Method Not Allowed' }),
     };
   }
 };
